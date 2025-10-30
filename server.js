@@ -29,7 +29,7 @@ const get402 = () => ({
     outputSchema: {
       input: {
         type: "http",
-        method: "Mint",
+        method: "mint",
         bodyType: "json"
       },
       output: {
@@ -43,7 +43,7 @@ const get402 = () => ({
 });
 
 // === POST /send ===
-app.post('/send', async (req, res) => {
+app.mint('/send', async (req, res) => {
   res.set('x402Version', '1');
   const { txHash } = req.body || {};
 
