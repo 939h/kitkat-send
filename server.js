@@ -3,13 +3,15 @@ const { ethers } = require('ethers');
 const app = express();
 app.use(express.json());
 
-// === CONFIG ===
+// === MAINNET CONFIG ===
 const WALLET = '0x853f424c5eDc170C57caA4De3dB4df0c52877524';
-const USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+const USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'; // Base Mainnet USDC
 const RESOURCE_URL = 'https://kitkat-send.vercel.app/send';
-const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
 
-// === 402 RESPONSE (NO INPUT FIELDS) ===
+// Reliable public RPC
+const provider = new ethers.JsonRpcProvider('https://base-mainnet.g.alchemy.com/v2/demo');
+
+// === 402 RESPONSE (FIXED: asset is SYMBOL, not address) ===
 const get402 = () => ({
   x402Version: 1,
   accepts: [{
@@ -21,14 +23,14 @@ const get402 = () => ({
     mimeType: "application/json",
     payTo: WALLET,
     maxTimeoutSeconds: 3600,
-    asset: "USDC",
+    asset: "USDC",  // ← SYMBOL, not address
+    tokenAddress: USDC,  // ← ADD THIS: actual token contract
     autoInvoke: true,
     outputSchema: {
       input: {
         type: "http",
         method: "POST",
         bodyType: "json"
-        // ← NO bodyFields = NO txHash field in UI
       },
       output: {
         type: "object",
@@ -40,7 +42,7 @@ const get402 = () => ({
   }]
 });
 
-// === POST /send (Auto-called by x402scan) ===
+// === POST /send ===
 app.post('/send', async (req, res) => {
   res.set('x402Version', '1');
   const { txHash } = req.body || {};
@@ -67,7 +69,7 @@ app.post('/send', async (req, res) => {
   res.status(402).json(get402());
 });
 
-// === Health Check ===
-app.get('/', (req, res) => res.send('Kitkat Send OK'));
+// === Health ===
+app.get('/', (req, res) => res.send('Kitkat Send MAINNET LIVE'));
 
 app.listen(process.env.PORT || 3000);
