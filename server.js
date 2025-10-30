@@ -9,7 +9,20 @@ const USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 
 app.post('/send', async (req, res) => {
   const { txHash } = req.body;
-  if (!txHash) return res.status(402).send(`Send 1 USDC to ${WALLET}`);
+  if (!txHash) {
+    // Return full x402 quote for validation
+    return res.status(402).json({
+      "x402": {
+        "quote": {
+          "amount": "1000000",  // 1 USDC (6 decimals)
+          "currency": "USDC",
+          "chain": "base",
+          "recipient": WALLET,
+          "description": "Send 1 USDC to Kitkat"
+        }
+      }
+    });
+  }
 
   try {
     const receipt = await provider.getTransactionReceipt(txHash);
@@ -24,7 +37,18 @@ app.post('/send', async (req, res) => {
       }
     }
   } catch (e) { console.error(e); }
-  res.status(402).send(`Send 1 USDC to ${WALLET}`);
+  // Fallback 402 with quote if invalid
+  res.status(402).json({
+    "x402": {
+      "quote": {
+        "amount": "1000000",
+        "currency": "USDC",
+        "chain": "base",
+        "recipient": WALLET,
+        "description": "Send 1 USDC to Kitkat"
+      }
+    }
+  });
 });
 
 app.listen(process.env.PORT || 3000);
