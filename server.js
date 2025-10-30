@@ -3,19 +3,13 @@ const { ethers } = require('ethers');
 const app = express();
 app.use(express.json());
 
-// Config
+// === CONFIG ===
 const WALLET = '0x853f424c5eDc170C57caA4De3dB4df0c52877524';
 const USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 const RESOURCE_URL = 'https://kitkat-send.vercel.app/send';
-let provider;
+const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
 
-try {
-  provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
-} catch (e) {
-  console.error("Provider failed to init");
-}
-
-// === 402 Response ===
+// === 402 RESPONSE (Auto-Pay) ===
 const get402 = () => ({
   x402Version: 1,
   accepts: [{
@@ -28,14 +22,15 @@ const get402 = () => ({
     payTo: WALLET,
     maxTimeoutSeconds: 3600,
     asset: "USDC",
+    autoInvoke: true,  // ← THIS REMOVES txHash FIELD
     outputSchema: {
-      input: { type: "http", method: "POST", bodyType: "json", bodyFields: { txHash: { type: "string", required: true } } },
+      input: { type: "http", method: "POST", bodyType: "json" },
       output: { type: "object", properties: { message: { type: "string" } } }
     }
   }]
 });
 
-// === POST /send ===
+// === POST /send (Auto-called after payment) ===
 app.post('/send', async (req, res) => {
   res.set('x402Version', '1');
   const { txHash } = req.body;
@@ -62,9 +57,7 @@ app.post('/send', async (req, res) => {
   res.status(402).json(get402());
 });
 
-// === Health Check ===
-app.get('/', (req, res) => res.send('Kitkat Send Server OK'));
+// === Health ===
+app.get('/', (req, res) => res.send('Kitkat Send OK'));
 
-// === Start ===
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Running on ${PORT}`));
+app.listen(process.env.PORT || 3000);
