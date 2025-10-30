@@ -29,7 +29,7 @@ const get402 = () => ({
     outputSchema: {
       input: {
         type: "http",
-        method: "POST",
+        method: "Mint",
         bodyType: "json"
       },
       output: {
