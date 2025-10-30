@@ -19,7 +19,7 @@ const get402 = () => ({
     network: "base",
     maxAmountRequired: "10000",  // ← 0.01 USDC = 10,000 (6 decimals)
     resource: RESOURCE_URL,
-    description: "Mint 5000 token",
+    description: "Mint 5000 tokenss",
     mimeType: "application/json",
     payTo: RECEIVER_WALLET,
     maxTimeoutSeconds: 3600,
