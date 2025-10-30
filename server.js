@@ -3,33 +3,45 @@ const { ethers } = require('ethers');
 const app = express();
 app.use(express.json());
 
-// === MAINNET CONFIG ===
-const RECEIVER_WALLET = '0x853f424c5edc170c57caa4de3db4df0c52877524'; // ← YOUR WALLET
-const USDC_CONTRACT = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'; // Base Mainnet USDC
+// === CONFIG ===
+const WALLET = '0x853f424c5eDc170C57caA4De3dB4df0c52877524';
+const USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 const RESOURCE_URL = 'https://kitkat-send.vercel.app/send';
-
-// Reliable RPC
 const provider = new ethers.JsonRpcProvider('https://base-mainnet.g.alchemy.com/v2/demo');
 
-// === 402 RESPONSE — 0.01 USDC ===
+// === ALL RESOURCES ===
+const RESOURCES = [
+  {
+    amount: "1000000",  // 1 USDC
+    description: "Mint 5000 tokens for 1 USDC",
+    minValue: 1_000_000n
+  },
+  {
+    amount: "200000",   // 0.2 USDC
+    description: "Mint 5000 tokens for 0.2 USDC",
+    minValue: 200_000n
+  }
+];
+
+// === 402 RESPONSE (SHOWS BOTH OPTIONS) ===
 const get402 = () => ({
   x402Version: 1,
-  accepts: [{
+  accepts: RESOURCES.map(r => ({
     scheme: "exact",
     network: "base",
-    maxAmountRequired: "10000",  // ← 0.01 USDC = 10,000 (6 decimals)
+    maxAmountRequired: r.amount,
     resource: RESOURCE_URL,
-    description: "Mint 5000 tokenss",
+    description: r.description,
     mimeType: "application/json",
-    payTo: RECEIVER_WALLET,
+    payTo: WALLET,
     maxTimeoutSeconds: 3600,
-    asset: USDC_CONTRACT,
+    asset: USDC,
     autoInvoke: true,
     outputSchema: {
       input: { type: "http", method: "POST", bodyType: "json" },
       output: { type: "object", properties: { message: { type: "string" } } }
     }
-  }]
+  }))
 });
 
 // === POST /send ===
@@ -41,16 +53,22 @@ app.post('/send', async (req, res) => {
 
   try {
     const receipt = await provider.getTransactionReceipt(txHash);
-    if (!receipt || receipt.to?.toLowerCase() !== USDC_CONTRACT.toLowerCase()) {
+    if (!receipt || receipt.to?.toLowerCase() !== USDC.toLowerCase()) {
       return res.status(402).json(get402());
     }
 
-    const log = receipt.logs.find(l => l.address.toLowerCase() === USDC_CONTRACT.toLowerCase());
+    const log = receipt.logs.find(l => l.address.toLowerCase() === USDC.toLowerCase());
     if (!log) return res.status(402).json(get402());
 
     const e = new ethers.Interface(['event Transfer(address from, address to, uint value)']).parseLog(log);
-    if (e.args.to.toLowerCase() === RECEIVER_WALLET.toLowerCase() && e.args.value >= 10_000n) {
-      return res.status(200).json({ message: "Send received!" });
+    const value = e.args.value;
+    const to = e.args.to.toLowerCase();
+
+    if (to === WALLET.toLowerCase()) {
+      const resource = RESOURCES.find(r => value >= r.minValue);
+      if (resource) {
+        return res.status(200).json({ message: "Send received! Minting 5000 tokens..." });
+      }
     }
   } catch (e) {
     console.error(e);
@@ -59,7 +77,6 @@ app.post('/send', async (req, res) => {
   res.status(402).json(get402());
 });
 
-// === Health ===
-app.get('/', (req, res) => res.send('Kitkat Send 0.01 USDC LIVE'));
+app.get('/', (req, res) => res.send('Kitkat Send: 1 USDC & 0.2 USDC LIVE'));
 
 app.listen(process.env.PORT || 3000);
