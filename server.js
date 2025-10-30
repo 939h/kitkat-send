@@ -19,7 +19,7 @@ const get402 = () => ({
     network: "base",
     maxAmountRequired: "1000000",
     resource: RESOURCE_URL,
-    description: "Send 1 USDC to Kitkat",
+    description: "Mint 5000 $kitkat",
     mimeType: "application/json",
     payTo: WALLET,
     maxTimeoutSeconds: 3600,
