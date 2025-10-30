@@ -10,14 +10,20 @@ const USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 app.post('/send', async (req, res) => {
   const { txHash } = req.body;
 
-  // === 402: Missing or Invalid txHash → Return x402 Quote ===
+  // === 402: Always return x402Version header ===
+  res.set('x402Version', '1');
+
   if (!txHash) {
     return res.status(402).json({
-      amount: 1000000,                    // ← NUMBER, not string
-      currency: "USDC",
-      chain: "base",
-      recipient: WALLET,
-      description: "Send 1 USDC to Kitkat"
+      x402: {
+        quote: {
+          amount: 1000000,
+          currency: "USDC",
+          chain: "base",
+          recipient: WALLET,
+          description: "Send 1 USDC to Kitkat"
+        }
+      }
     });
   }
 
@@ -37,13 +43,17 @@ app.post('/send', async (req, res) => {
     console.error(e);
   }
 
-  // === 402: Invalid txHash → Return Quote Again ===
+  // === 402: Invalid txHash ===
   res.status(402).json({
-    amount: 1000000,
-    currency: "USDC",
-    chain: "base",
-    recipient: WALLET,
-    description: "Send 1 USDC to Kitkat"
+    x402: {
+      quote: {
+        amount: 1000000,
+        currency: "USDC",
+        chain: "base",
+        recipient: WALLET,
+        description: "Send 1 USDC to Kitkat"
+      }
+    }
   });
 });
 
