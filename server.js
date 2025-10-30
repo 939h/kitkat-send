@@ -27,8 +27,8 @@ const get402 = () => ({
       input: {
         type: "http",
         method: "POST",
-        bodyType: "json",
-        bodyFields: {}  // ← EMPTY = NO FIELDS
+        bodyType: "json"
+        // ← NO bodyFields = NO txHash field in UI
       },
       output: {
         type: "object",
@@ -40,7 +40,7 @@ const get402 = () => ({
   }]
 });
 
-// === POST /send ===
+// === POST /send (Auto-called by x402scan) ===
 app.post('/send', async (req, res) => {
   res.set('x402Version', '1');
   const { txHash } = req.body || {};
@@ -67,7 +67,7 @@ app.post('/send', async (req, res) => {
   res.status(402).json(get402());
 });
 
-// === Health ===
+// === Health Check ===
 app.get('/', (req, res) => res.send('Kitkat Send OK'));
 
 app.listen(process.env.PORT || 3000);
