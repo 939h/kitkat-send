@@ -9,7 +9,7 @@ const USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 const RESOURCE_URL = 'https://kitkat-send.vercel.app/send';
 const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
 
-// === 402 RESPONSE (Auto-Pay) ===
+// === 402 RESPONSE (NO INPUT FIELDS) ===
 const get402 = () => ({
   x402Version: 1,
   accepts: [{
@@ -22,18 +22,28 @@ const get402 = () => ({
     payTo: WALLET,
     maxTimeoutSeconds: 3600,
     asset: "USDC",
-    autoInvoke: true,  // ← THIS REMOVES txHash FIELD
+    autoInvoke: true,
     outputSchema: {
-      input: { type: "http", method: "POST", bodyType: "json" },
-      output: { type: "object", properties: { message: { type: "string" } } }
+      input: {
+        type: "http",
+        method: "POST",
+        bodyType: "json",
+        bodyFields: {}  // ← EMPTY = NO FIELDS
+      },
+      output: {
+        type: "object",
+        properties: {
+          message: { type: "string" }
+        }
+      }
     }
   }]
 });
 
-// === POST /send (Auto-called after payment) ===
+// === POST /send ===
 app.post('/send', async (req, res) => {
   res.set('x402Version', '1');
-  const { txHash } = req.body;
+  const { txHash } = req.body || {};
 
   if (!txHash) return res.status(402).json(get402());
 
