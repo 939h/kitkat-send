@@ -4,7 +4,7 @@ const app = express();
 app.use(express.json());
 
 // === MAINNET CONFIG ===
-const WALLET = '0x853f424c5eDc170C57caA4De3dB4df0c52877524';
+const WALLET = '0xe68b85b5e09a1090e91a350aab4814fc12a1c226';
 const USDC_CONTRACT = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'; // ← USDC on Base Mainnet
 const RESOURCE_URL = 'https://kitkat-send.vercel.app/send';
 
@@ -19,7 +19,7 @@ const get402 = () => ({
     network: "base",
     maxAmountRequired: "1000000",
     resource: RESOURCE_URL,
-    description: "Mint 5000 token",
+    description: "mint 5000 token",
     mimeType: "application/json",
     payTo: WALLET,
     maxTimeoutSeconds: 3600,
