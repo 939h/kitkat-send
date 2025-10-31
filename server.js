@@ -17,7 +17,7 @@ const get402 = () => ({
     scheme: "exact",
     network: "base",
     maxAmountRequired: amount,
-    resource: "https://kitkat.vercel.app/send",
+    resource: "https://kitkat-send.vercel.app/send",
     description: `Mint 5000 tokens for ${amount / 1e6} USDC`,
     mimeType: "application/json",
     payTo: "coinbase",
