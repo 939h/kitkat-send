@@ -26,12 +26,12 @@ const TIERS = [
   },
   {
     amount: '200000',  // 0.2 USDC
-    description: 'Mint 5000 tokens (Standard)',
+    description: 'Mint 200 tokens (Standard)',
     minValue: 200_000n
   },
   {
     amount: '10000',   // 0.01 USDC
-    description: 'Mint 5000 tokens (Micro)',
+    description: 'Mint 100 tokens (Micro)',
     minValue: 10_000n
   }
 ];
