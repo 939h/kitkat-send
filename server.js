@@ -21,22 +21,13 @@ const get402 = () => ({
     resource: RESOURCE_URL,
     description: "Send 1 USDC",
     mimeType: "application/json",
-    payTo: "coinbase",
+    payTo: "0x853f424c5eDc170C57caA4De3dB4df0c52877524",  // ← YOUR WALLET
     maxTimeoutSeconds: 3600,
-    asset: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",  // ← MUST BE 0x833589... (40 hex chars)
+    asset: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
     autoInvoke: true,
     outputSchema: {
-      input: {
-        type: "http",
-        method: "POST",
-        bodyType: "json"
-      },
-      output: {
-        type: "object",
-        properties: {
-          message: { type: "string" }
-        }
-      }
+      input: { type: "http", method: "POST", bodyType: "json" },
+      output: { type: "object", properties: { message: { type: "string" } } }
     }
   }]
 });
