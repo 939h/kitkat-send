@@ -1,82 +1,84 @@
-const express = require('express');
-const { ethers } = require('ethers');
+import express from 'express';
+import { X402 } from '@coinbase/x402';
+
 const app = express();
 app.use(express.json());
 
 // === CONFIG ===
 const WALLET = '0x853f424c5eDc170C57caA4De3dB4df0c52877524';
-const USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
-const RESOURCE_URL = 'https://kitkat-send.vercel.app/send';
-const provider = new ethers.JsonRpcProvider('https://base-mainnet.g.alchemy.com/v2/demo');
+const USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'; // Base Mainnet USDC
+const RPC_URL = 'https://base-mainnet.g.alchemy.com/v2/demo';
 
-// === ALL RESOURCES ===
-const RESOURCES = [
+// === x402 INSTANCE ===
+const x402 = new X402({
+  payTo: WALLET,
+  asset: USDC,
+  network: 'base',
+  rpcUrl: RPC_URL,
+});
+
+// === PRICING TIERS ===
+const TIERS = [
   {
-    amount: "1000000",  // 1 USDC
-    description: "Mint 5000 tokens for 1 USDC",
+    amount: '1000000', // 1 USDC
+    description: 'Mint 5000 tokens (Premium)',
     minValue: 1_000_000n
   },
   {
-    amount: "200000",   // 0.2 USDC
-    description: "Mint 5000 tokens for 0.2 USDC",
+    amount: '200000',  // 0.2 USDC
+    description: 'Mint 5000 tokens (Standard)',
     minValue: 200_000n
+  },
+  {
+    amount: '10000',   // 0.01 USDC
+    description: 'Mint 5000 tokens (Micro)',
+    minValue: 10_000n
   }
 ];
 
-// === 402 RESPONSE (SHOWS BOTH OPTIONS) ===
-const get402 = () => ({
-  x402Version: 1,
-  accepts: RESOURCES.map(r => ({
-    scheme: "exact",
-    network: "base",
-    maxAmountRequired: r.amount,
-    resource: RESOURCE_URL,
-    description: r.description,
-    mimeType: "application/json",
-    payTo: WALLET,
-    maxTimeoutSeconds: 3600,
-    asset: USDC,
-    autoInvoke: true,
-    outputSchema: {
-      input: { type: "http", method: "POST", bodyType: "json" },
-      output: { type: "object", properties: { message: { type: "string" } } }
-    }
-  }))
-});
-
-// === POST /send ===
+// === 402 QUOTE (SHOWS ALL TIERS) ===
 app.post('/send', async (req, res) => {
-  res.set('x402Version', '1');
   const { txHash } = req.body || {};
 
-  if (!txHash) return res.status(402).json(get402());
-
-  try {
-    const receipt = await provider.getTransactionReceipt(txHash);
-    if (!receipt || receipt.to?.toLowerCase() !== USDC.toLowerCase()) {
-      return res.status(402).json(get402());
-    }
-
-    const log = receipt.logs.find(l => l.address.toLowerCase() === USDC.toLowerCase());
-    if (!log) return res.status(402).json(get402());
-
-    const e = new ethers.Interface(['event Transfer(address from, address to, uint value)']).parseLog(log);
-    const value = e.args.value;
-    const to = e.args.to.toLowerCase();
-
-    if (to === WALLET.toLowerCase()) {
-      const resource = RESOURCES.find(r => value >= r.minValue);
-      if (resource) {
-        return res.status(200).json({ message: "Send received! Minting 5000 tokens..." });
-      }
-    }
-  } catch (e) {
-    console.error(e);
+  // No txHash → return all pricing options
+  if (!txHash) {
+    return x402.quote(res, TIERS.map(t => ({
+      amount: t.amount,
+      description: t.description
+    })));
   }
 
-  res.status(402).json(get402());
+  try {
+    // Verify payment matches any tier
+    const validTier = await x402.verify(txHash, TIERS.map(t => t.amount));
+    
+    if (validTier) {
+      const tier = TIERS.find(t => t.amount === validTier.amount);
+      return res.status(200).json({
+        message: `Send received! Minting 5000 tokens for ${tier.amount / 1000000} USDC...`
+      });
+    }
+  } catch (error) {
+    console.error('Verification failed:', error);
+  }
+
+  // Invalid → show quote again
+  return x402.quote(res, TIERS.map(t => ({
+    amount: t.amount,
+    description: t.description
+  })));
 });
 
-app.get('/', (req, res) => res.send('Kitkat Send: 1 USDC & 0.2 USDC LIVE'));
+// === Health Check ===
+app.get('/', (req, res) => {
+  res.send(`
+    <h1>Kitkat Send — LIVE</h1>
+    <p>3 Tiers: $1.00, $0.20, $0.01 → 5000 tokens</p>
+    <p><a href="https://www.x402scan.com/recipient/0x853f424c5eDc170C57caA4De3dB4df0c52877524">View on x402scan</a></p>
+  `);
+});
 
-app.listen(process.env.PORT || 3000);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Kitkat Send running on port ${PORT}`);
+});
