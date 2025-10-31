@@ -9,7 +9,7 @@ const USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 const RPC = 'https://base-mainnet.g.alchemy.com/v2/demo';
 const provider = new ethers.JsonRpcProvider(RPC);
 
-const TIERS = ['10000', '200000', '1000000']; // 0.01, 0.2, 1 USDC
+const TIERS = ['10000', '200000', '1000000'];
 
 const get402 = () => ({
   x402Version: 1,
@@ -17,13 +17,17 @@ const get402 = () => ({
     scheme: "exact",
     network: "base",
     maxAmountRequired: amount,
-    resource: "https://kitkat-send.vercel.app/send",
+    resource: "https://kitkat.vercel.app/send",
     description: `Mint 5000 tokens for ${amount / 1e6} USDC`,
     mimeType: "application/json",
     payTo: "coinbase",
     maxTimeoutSeconds: 3600,
     asset: USDC,
-    autoInvoke: true
+    autoInvoke: true,
+    outputSchema: {
+      input: { type: "http", method: "POST", bodyType: "json" },
+      output: { type: "object", properties: { message: { type: "string" } } }
+    }
   }))
 });
 
@@ -54,6 +58,6 @@ app.post('/send', async (req, res) => {
   return res.status(402).json(get402());
 });
 
-app.get('/', (req, res) => res.send('kitkat-send LIVE'));
+app.get('/', (req, res) => res.send('kitkat LIVE'));
 
 app.listen(3000);
