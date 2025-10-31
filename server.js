@@ -21,9 +21,9 @@ const get402 = () => ({
     resource: RESOURCE_URL,
     description: "Send 1 USDC to Kitkat",
     mimeType: "application/json",
-    payTo: WALLET,
+    payTo: "coinbase",
     maxTimeoutSeconds: 3600,
-    asset: USDC_CONTRACT,  // ← MUST BE 0x833589... (40 hex chars)
+    asset: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913,  // ← MUST BE 0x833589... (40 hex chars)
     autoInvoke: true,
     outputSchema: {
       input: {
