@@ -11,8 +11,8 @@ const RPC_URL = 'https://base-mainnet.g.alchemy.com/v2/demo';
 
 // === x402 INSTANCE ===
 const x402 = new X402({
-  payTo: WALLET,
-  asset: USDC,
+  payTo: coinbase,
+  asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
   network: 'base',
   rpcUrl: RPC_URL,
 });
